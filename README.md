@@ -148,31 +148,6 @@ The API will be available at `http://localhost:8000`
 | `SMTP_PASSWORD` | SMTP password | - | Yes |
 | `SKIP_EMAIL_SENDING` | Skip actual email sending (development) | false | No |
 
-### SMTP Providers
-
-#### Gmail
-```env
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USERNAME=your-email@gmail.com
-SMTP_PASSWORD=your-app-password
-```
-
-#### Outlook/Hotmail
-```env
-SMTP_HOST=smtp-mail.outlook.com
-SMTP_PORT=587
-SMTP_USERNAME=your-email@outlook.com
-SMTP_PASSWORD=your-password
-```
-
-#### Custom SMTP Server
-```env
-SMTP_HOST=your-smtp-server.com
-SMTP_PORT=587
-SMTP_USERNAME=your-username
-SMTP_PASSWORD=your-password
-```
 
 ## Development
 
@@ -185,7 +160,7 @@ Set `SKIP_EMAIL_SENDING=true` in your `.env` file to skip actual email sending d
 You can test the API using curl:
 
 ```bash
-curl -X POST "http://localhost:8000/send-email" \
+curl -X POST "http://localhost:8000/email" \
   -H "Content-Type: application/json" \
   -d '{
     "to": ["test@example.com"],
@@ -194,6 +169,393 @@ curl -X POST "http://localhost:8000/send-email" \
     "plain_body": "This is a test email",
     "html_body": "<h1>Test Email</h1><p>This is a test email</p>"
   }'
+```
+
+## Using the API from Python
+
+### Example Python Script
+
+Here's a complete example of how to call the email API from another Python script:
+
+#### **Dependencies**
+```bash
+pip install requests
+```
+
+#### **Basic Email Sending Script**
+```python
+import requests
+import json
+from typing import List, Optional
+
+class EmailAPIClient:
+    """Client for interacting with the Email API"""
+    
+    def __init__(self, base_url: str = "http://localhost:8000", token: str):
+        self.base_url = base_url
+        self.email_endpoint = f"{base_url}/email"
+        self.health_endpoint = f"{base_url}/healthz"
+        self.token = token
+    
+    def send_email(self, 
+                   to: List[str], 
+                   from_email: str, 
+                   subject: str, 
+                   plain_body: str, 
+                   html_body: Optional[str] = None) -> dict:
+        """
+        Send an email via the API
+        
+        Args:
+            to: List of recipient email addresses
+            from_email: Sender email address
+            subject: Email subject
+            plain_body: Plain text body content
+            html_body: Optional HTML body content
+            
+        Returns:
+            dict: API response
+        """
+        payload = {
+            "to": to,
+            "from_email": from_email,
+            "subject": subject,
+            "plain_body": plain_body
+        }
+        
+        if html_body:
+            payload["html_body"] = html_body
+        
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.token}"
+        }
+        
+        try:
+            response = requests.post(
+                self.email_endpoint,
+                json=payload,
+                headers=headers,
+                timeout=30
+            )
+            
+            response.raise_for_status()
+            return response.json()
+            
+        except requests.exceptions.HTTPError as e:
+            error_detail = "Unknown error"
+            try:
+                error_response = response.json()
+                error_detail = error_response.get("detail", "Unknown error")
+            except:
+                pass
+            raise Exception(f"HTTP Error {response.status_code}: {error_detail}")
+        
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Request failed: {str(e)}")
+    
+    def check_health(self) -> dict:
+        """Check API health status"""
+        headers = {"Authorization": f"Bearer {self.token}"}
+        
+        try:
+            response = requests.get(self.health_endpoint, headers=headers, timeout=10)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Health check failed: {str(e)}")
+
+# Example usage
+if __name__ == "__main__":
+    # Initialize the client with token
+    email_client = EmailAPIClient("http://localhost:8000", token="your-api-token-here")
+    
+    try:
+        # Check API health
+        print("Checking API health...")
+        health = email_client.check_health()
+        print(f"API Status: {health.get('status', 'unknown')}")
+        
+        # Send a simple email
+        print("\nSending email...")
+        result = email_client.send_email(
+            to=["recipient@example.com"],
+            from_email="sender@example.com",
+            subject="Test Email from Python Script",
+            plain_body="This is a test email sent from a Python script using the Email API.",
+            html_body="<h1>Test Email</h1><p>This is a test email sent from a Python script using the Email API.</p>"
+        )
+        print(f"Email sent successfully: {result}")
+        
+        # Send email to multiple recipients
+        print("\nSending email to multiple recipients...")
+        result = email_client.send_email(
+            to=["user1@example.com", "user2@example.com", "user3@example.com"],
+            from_email="sender@example.com",
+            subject="Bulk Email Test",
+            plain_body="This email was sent to multiple recipients.",
+            html_body="<h2>Bulk Email Test</h2><p>This email was sent to multiple recipients.</p>"
+        )
+        print(f"Bulk email sent successfully: {result}")
+        
+    except Exception as e:
+        print(f"Error: {str(e)}")
+```
+
+#### **Advanced Usage Example**
+```python
+import requests
+import json
+from datetime import datetime
+from typing import List, Optional, Dict, Any
+
+class AdvancedEmailAPIClient:
+    """Advanced client with additional features"""
+    
+    def __init__(self, base_url: str = "http://localhost:8000", token: str):
+        self.base_url = base_url
+        self.email_endpoint = f"{base_url}/email"
+        self.health_endpoint = f"{base_url}/healthz"
+        self.token = token
+        self.session = requests.Session()
+        
+        # Set default headers
+        self.session.headers.update({
+            "Content-Type": "application/json",
+            "User-Agent": "EmailAPIClient/1.0"
+        })
+        
+        self.session.headers["Authorization"] = f"Bearer {token}"
+    
+    def send_email_with_template(self, 
+                                to: List[str], 
+                                from_email: str, 
+                                subject: str, 
+                                template_name: str, 
+                                template_vars: Dict[str, Any]) -> dict:
+        """Send email using a template with variables"""
+        
+        # Simple template system (you can expand this)
+        templates = {
+            "welcome": {
+                "plain_body": f"Welcome {template_vars.get('name', 'User')}! Your account has been created.",
+                "html_body": f"<h1>Welcome {template_vars.get('name', 'User')}!</h1><p>Your account has been created.</p>"
+            },
+            "notification": {
+                "plain_body": f"Notification: {template_vars.get('message', 'No message')}",
+                "html_body": f"<h2>Notification</h2><p>{template_vars.get('message', 'No message')}</p>"
+            }
+        }
+        
+        template = templates.get(template_name, templates["notification"])
+        
+        return self.send_email(
+            to=to,
+            from_email=from_email,
+            subject=subject,
+            plain_body=template["plain_body"],
+            html_body=template["html_body"]
+        )
+    
+    def send_email(self, 
+                   to: List[str], 
+                   from_email: str, 
+                   subject: str, 
+                   plain_body: str, 
+                   html_body: Optional[str] = None) -> dict:
+        """Send an email via the API"""
+        
+        payload = {
+            "to": to,
+            "from_email": from_email,
+            "subject": subject,
+            "plain_body": plain_body
+        }
+        
+        if html_body:
+            payload["html_body"] = html_body
+        
+        try:
+            response = self.session.post(
+                self.email_endpoint,
+                json=payload,
+                timeout=30
+            )
+            
+            response.raise_for_status()
+            return response.json()
+            
+        except requests.exceptions.HTTPError as e:
+            error_detail = "Unknown error"
+            try:
+                error_response = response.json()
+                error_detail = error_response.get("detail", "Unknown error")
+            except:
+                pass
+            raise Exception(f"HTTP Error {response.status_code}: {error_detail}")
+        
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Request failed: {str(e)}")
+    
+    def check_health(self) -> dict:
+        """Check API health status"""
+        try:
+            response = self.session.get(self.health_endpoint, timeout=10)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Health check failed: {str(e)}")
+    
+    def send_bulk_emails(self, emails: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Send multiple emails in batch"""
+        results = []
+        
+        for email_data in emails:
+            try:
+                result = self.send_email(**email_data)
+                results.append({"success": True, "result": result, "email": email_data})
+            except Exception as e:
+                results.append({"success": False, "error": str(e), "email": email_data})
+        
+        return results
+
+# Example usage
+if __name__ == "__main__":
+    # Initialize the advanced client with token
+    email_client = AdvancedEmailAPIClient("http://localhost:8000", token="your-api-token-here")
+    
+    try:
+        # Check API health
+        print("Checking API health...")
+        health = email_client.check_health()
+        print(f"API Status: {health.get('status', 'unknown')}")
+        
+        # Send email with template
+        print("\nSending welcome email with template...")
+        result = email_client.send_email_with_template(
+            to=["newuser@example.com"],
+            from_email="noreply@example.com",
+            subject="Welcome to Our Service",
+            template_name="welcome",
+            template_vars={"name": "John Doe"}
+        )
+        print(f"Welcome email sent: {result}")
+        
+        # Send bulk emails
+        print("\nSending bulk emails...")
+        bulk_emails = [
+            {
+                "to": ["user1@example.com"],
+                "from_email": "sender@example.com",
+                "subject": "Bulk Email 1",
+                "plain_body": "This is bulk email 1"
+            },
+            {
+                "to": ["user2@example.com"],
+                "from_email": "sender@example.com",
+                "subject": "Bulk Email 2",
+                "plain_body": "This is bulk email 2"
+            }
+        ]
+        
+        bulk_results = email_client.send_bulk_emails(bulk_emails)
+        for i, result in enumerate(bulk_results):
+            if result["success"]:
+                print(f"Bulk email {i+1} sent successfully")
+            else:
+                print(f"Bulk email {i+1} failed: {result['error']}")
+        
+    except Exception as e:
+        print(f"Error: {str(e)}")
+```
+
+#### **Error Handling Example**
+```python
+import requests
+import json
+from typing import List, Optional
+
+def send_email_with_retry(to: List[str], 
+                         from_email: str, 
+                         subject: str, 
+                         plain_body: str, 
+                         html_body: Optional[str] = None,
+                         token: str,
+                         max_retries: int = 3) -> dict:
+    """Send email with retry logic"""
+    
+    for attempt in range(max_retries):
+        try:
+            payload = {
+                "to": to,
+                "from_email": from_email,
+                "subject": subject,
+                "plain_body": plain_body
+            }
+            
+            if html_body:
+                payload["html_body"] = html_body
+            
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {token}"
+            }
+            
+            response = requests.post(
+                "http://localhost:8000/email",
+                json=payload,
+                headers=headers,
+                timeout=30
+            )
+            
+            response.raise_for_status()
+            return response.json()
+            
+        except requests.exceptions.HTTPError as e:
+            if response.status_code == 422:
+                # Validation error - don't retry
+                error_detail = "Validation error"
+                try:
+                    error_response = response.json()
+                    error_detail = error_response.get("detail", "Validation error")
+                except:
+                    pass
+                raise Exception(f"Validation Error: {error_detail}")
+            elif response.status_code >= 500:
+                # Server error - retry
+                print(f"Server error on attempt {attempt + 1}: {e}")
+                if attempt == max_retries - 1:
+                    raise Exception(f"Server error after {max_retries} attempts: {e}")
+            else:
+                # Other HTTP error - don't retry
+                raise Exception(f"HTTP Error {response.status_code}: {e}")
+        
+        except requests.exceptions.RequestException as e:
+            print(f"Request error on attempt {attempt + 1}: {e}")
+            if attempt == max_retries - 1:
+                raise Exception(f"Request failed after {max_retries} attempts: {e}")
+        
+        # Wait before retry
+        import time
+        time.sleep(2 ** attempt)  # Exponential backoff
+    
+    raise Exception("Max retries exceeded")
+
+# Example usage
+if __name__ == "__main__":
+    try:
+        result = send_email_with_retry(
+            to=["recipient@example.com"],
+            from_email="sender@example.com",
+            subject="Test Email with Retry",
+            plain_body="This email was sent with retry logic.",
+            html_body="<h1>Test Email with Retry</h1><p>This email was sent with retry logic.</p>",
+            token="your-api-token-here"
+        )
+        print(f"Email sent successfully: {result}")
+        
+    except Exception as e:
+        print(f"Failed to send email: {str(e)}")
 ```
 
 ## Error Handling
