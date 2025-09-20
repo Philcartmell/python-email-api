@@ -1,0 +1,151 @@
+### Variables
+@baseUrl = http://localhost:8000
+@testEmail = test@example.com
+@senderEmail = sender@example.com
+
+### Health Check
+GET {{baseUrl}}/health
+
+###
+
+### Send Email - Happy Path (Plain Text Only)
+POST {{baseUrl}}/send-email
+Content-Type: application/json
+
+{
+  "to": ["{{testEmail}}", "another@example.com"],
+  "from_email": "{{senderEmail}}",
+  "subject": "Test Email - Plain Text",
+  "plain_body": "This is a test email with plain text content. It should be delivered successfully."
+}
+
+###
+
+### Send Email - Happy Path (With HTML Body)
+POST {{baseUrl}}/send-email
+Content-Type: application/json
+
+{
+  "to": ["{{testEmail}}"],
+  "from_email": "{{senderEmail}}",
+  "subject": "Test Email - HTML Content",
+  "plain_body": "This is the plain text version of the email.",
+  "html_body": "<h1>Test Email</h1><p>This is the <strong>HTML version</strong> of the email with <em>formatting</em>.</p><ul><li>Feature 1</li><li>Feature 2</li></ul>"
+}
+
+###
+
+### Send Email - Validation Error: Missing Recipients
+POST {{baseUrl}}/send-email
+Content-Type: application/json
+
+{
+  "to": [],
+  "from_email": "{{senderEmail}}",
+  "subject": "Test Email - No Recipients",
+  "plain_body": "This should fail validation."
+}
+
+###
+
+### Send Email - Validation Error: Empty Subject
+POST {{baseUrl}}/send-email
+Content-Type: application/json
+
+{
+  "to": ["{{testEmail}}"],
+  "from_email": "{{senderEmail}}",
+  "subject": "",
+  "plain_body": "This should fail validation due to empty subject."
+}
+
+###
+
+### Send Email - Validation Error: Empty Plain Body
+POST {{baseUrl}}/send-email
+Content-Type: application/json
+
+{
+  "to": ["{{testEmail}}"],
+  "from_email": "{{senderEmail}}",
+  "subject": "Test Email - Empty Body",
+  "plain_body": ""
+}
+
+###
+
+### Send Email - Validation Error: Invalid Email Format
+POST {{baseUrl}}/send-email
+Content-Type: application/json
+
+{
+  "to": ["invalid-email-format"],
+  "from_email": "{{senderEmail}}",
+  "subject": "Test Email - Invalid Email",
+  "plain_body": "This should fail validation due to invalid email format."
+}
+
+###
+
+### Send Email - Validation Error: Invalid From Email
+POST {{baseUrl}}/send-email
+Content-Type: application/json
+
+{
+  "to": ["{{testEmail}}"],
+  "from_email": "invalid-from-email",
+  "subject": "Test Email - Invalid From",
+  "plain_body": "This should fail validation due to invalid from email format."
+}
+
+###
+
+### Send Email - Missing Required Fields
+POST {{baseUrl}}/send-email
+Content-Type: application/json
+
+{
+  "to": ["{{testEmail}}"],
+  "subject": "Test Email - Missing Fields"
+}
+
+###
+
+### Send Email - Development Mode Test (Skip Sending)
+POST {{baseUrl}}/send-email
+Content-Type: application/json
+
+{
+  "to": ["{{testEmail}}"],
+  "from_email": "{{senderEmail}}",
+  "subject": "Development Mode Test",
+  "plain_body": "This email should be skipped in development mode if SKIP_EMAIL_SENDING=true"
+}
+
+###
+
+### Send Email - Multiple Recipients
+POST {{baseUrl}}/send-email
+Content-Type: application/json
+
+{
+  "to": ["{{testEmail}}", "user1@example.com", "user2@example.com", "user3@example.com"],
+  "from_email": "{{senderEmail}}",
+  "subject": "Bulk Email Test",
+  "plain_body": "This is a test email sent to multiple recipients.",
+  "html_body": "<h2>Bulk Email Test</h2><p>This email was sent to multiple recipients to test the bulk email functionality.</p>"
+}
+
+###
+
+### Send Email - Long Content Test
+POST {{baseUrl}}/send-email
+Content-Type: application/json
+
+{
+  "to": ["{{testEmail}}"],
+  "from_email": "{{senderEmail}}",
+  "subject": "Long Content Test",
+  "plain_body": "This is a test email with a very long plain text body. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+  "html_body": "<h1>Long Content Test</h1><p>This is a test email with <strong>long HTML content</strong>.</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p><ul><li>Feature 1: Advanced email processing</li><li>Feature 2: HTML content support</li><li>Feature 3: Multiple recipient handling</li><li>Feature 4: Validation and error handling</li></ul>"
+}
