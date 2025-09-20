@@ -100,8 +100,7 @@ The API will be available at `http://localhost:8000`
 
 ### Interactive Documentation
 
-- **Swagger UI**: `http://localhost:8000/docs`
-- **ReDoc**: `http://localhost:8000/redoc`
+- **Swagger UI**: `http://localhost:8000/docs` (if enabled via `ENABLE_SWAGGER=true`)
 
 ### Endpoints
 
@@ -147,6 +146,7 @@ The API will be available at `http://localhost:8000`
 | `SMTP_USERNAME` | SMTP username | - | Yes |
 | `SMTP_PASSWORD` | SMTP password | - | Yes |
 | `SKIP_EMAIL_SENDING` | Skip actual email sending (development) | false | No |
+| `ENABLE_SWAGGER` | Enable Swagger UI documentation | false | No |
 
 
 ## Development
@@ -154,6 +154,16 @@ The API will be available at `http://localhost:8000`
 ### Development Mode
 
 Set `SKIP_EMAIL_SENDING=true` in your `.env` file to skip actual email sending during development. This allows you to test the API without sending real emails.
+
+### Swagger Documentation
+
+Swagger UI documentation is disabled by default for security. To enable it for development:
+
+1. Set `ENABLE_SWAGGER=true` in your `.env` file
+2. Restart the application
+3. Access the documentation at `http://localhost:8000/docs`
+
+**Note**: ReDoc is permanently disabled and cannot be enabled.
 
 ### Testing the API
 

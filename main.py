@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from dotenv import load_dotenv
 import logging
 import uvicorn
+import os
 
 from models.email_request import EmailRequest
 from config.email_config import EmailConfig
@@ -9,7 +10,15 @@ from services.email_service import EmailService
 
 load_dotenv()
 
-app = FastAPI(title="Email API", version="1.0.0")
+# Check if Swagger should be enabled
+enable_swagger = os.getenv("ENABLE_SWAGGER", "false").lower() == "true"
+
+app = FastAPI(
+    title="Email API", 
+    version="1.0.0",
+    docs_url="/docs" if enable_swagger else None,  # Enable/disable Swagger UI
+    redoc_url=None  # Permanently disable ReDoc
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
