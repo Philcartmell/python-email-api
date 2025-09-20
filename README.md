@@ -212,6 +212,148 @@ The API returns appropriate HTTP status codes:
 }
 ```
 
+## Testing
+
+The project includes comprehensive test suites to ensure reliability and validation.
+
+### Test Structure
+
+```
+tests/
+├── __init__.py
+├── test_email_request_validation.py    # Model validation tests
+└── test_api_validation.py              # API endpoint tests
+```
+
+### Test Categories
+
+#### **Model Validation Tests** (`test_email_request_validation.py`)
+Tests the Pydantic EmailRequest model validation:
+
+- ✅ **Valid email requests** - Ensures proper data acceptance
+- ✅ **Empty recipients validation** - Tests required recipient validation
+- ✅ **Empty subject validation** - Ensures subject is not empty
+- ✅ **Empty plain body validation** - Ensures body content is required
+- ✅ **Invalid email format validation** - Tests email format validation
+- ✅ **Missing required fields** - Tests required field validation
+- ✅ **Whitespace trimming** - Ensures proper whitespace handling
+- ✅ **Multiple recipients** - Tests bulk recipient handling
+
+#### **API Endpoint Tests** (`test_api_validation.py`)
+Tests the FastAPI endpoints with various scenarios:
+
+- ✅ **Valid requests** - Tests successful email sending
+- ✅ **Validation errors** - Tests HTTP 422 responses for invalid data
+- ✅ **Missing fields** - Tests required field validation
+- ✅ **Invalid JSON** - Tests malformed request handling
+- ✅ **Wrong content type** - Tests content type validation
+- ✅ **Health endpoint** - Tests `/healthz` endpoint functionality
+
+### Running Tests
+
+#### **Install Test Dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+#### **Run All Tests**
+```bash
+# Run all tests with verbose output
+pytest -v
+
+# Run all tests with coverage
+pytest -v --cov=.
+
+# Run tests with detailed output
+pytest -v -s
+```
+
+#### **Run Specific Test Files**
+```bash
+# Run only model validation tests
+pytest tests/test_email_request_validation.py -v
+
+# Run only API validation tests
+pytest tests/test_api_validation.py -v
+```
+
+#### **Run Specific Test Classes**
+```bash
+# Run only EmailRequest validation tests
+pytest tests/test_email_request_validation.py::TestEmailRequestValidation -v
+
+# Run only API validation tests
+pytest tests/test_api_validation.py::TestEmailAPIValidation -v
+```
+
+#### **Run Specific Test Methods**
+```bash
+# Run a specific test method
+pytest tests/test_email_request_validation.py::TestEmailRequestValidation::test_valid_email_request -v
+```
+
+#### **Run Tests with Markers**
+```bash
+# Run only validation tests (if you add markers)
+pytest -m validation -v
+```
+
+### Test Coverage
+
+```bash
+# Install coverage if not already installed
+pip install coverage
+
+# Run tests with coverage
+pytest --cov=. --cov-report=html --cov-report=term-missing
+
+# View HTML coverage report
+open htmlcov/index.html
+```
+
+### CI/CD Pipeline Commands
+
+For automated testing in CI/CD pipelines:
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run tests with exit code on failure
+pytest -v --tb=short
+
+# Run tests with coverage report
+pytest -v --cov=. --cov-report=term-missing
+
+# Run tests and generate JUnit XML for CI
+pytest -v --junitxml=test-results.xml
+```
+
+### Test Configuration
+
+Create a `pytest.ini` file in your project root for custom test configuration:
+
+```ini
+[tool.pytest.ini_options]
+testpaths = tests
+python_files = test_*.py
+python_classes = Test*
+python_functions = test_*
+addopts = -v --tb=short
+markers =
+    validation: marks tests as validation tests
+    integration: marks tests as integration tests
+```
+
+### Expected Test Results
+
+All tests should pass with the following coverage:
+
+- ✅ **Model Validation**: 100% coverage of EmailRequest validation logic
+- ✅ **API Validation**: 100% coverage of endpoint validation scenarios
+- ✅ **Error Handling**: Comprehensive testing of error scenarios
+- ✅ **Edge Cases**: Testing of boundary conditions and edge cases
+
 ## Dependencies
 
 - **FastAPI**: Modern, fast web framework for building APIs
@@ -219,6 +361,9 @@ The API returns appropriate HTTP status codes:
 - **Uvicorn**: ASGI server for running FastAPI applications
 - **python-dotenv**: Load environment variables from .env files
 - **python-multipart**: Handle multipart form data
+- **pytest**: Testing framework for Python
+- **httpx**: HTTP client for testing FastAPI applications
+- **email-validator**: Email validation for Pydantic models
 
 ## License
 
