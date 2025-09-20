@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 email_config = EmailConfig()
 email_service = EmailService(email_config)
 
-@app.post("/send-email")
+@app.post("/email")
 async def send_email_endpoint(email_data: EmailRequest):
     try:
         email_service.send_email(email_data)
@@ -28,7 +28,7 @@ async def send_email_endpoint(email_data: EmailRequest):
         logger.error(f"Unexpected error: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@app.get("/health")
+@app.get("/healthz")
 async def health_check():
     """Health check endpoint that validates SMTP configuration"""
     return email_config.validate_configuration()

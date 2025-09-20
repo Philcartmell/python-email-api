@@ -8,17 +8,6 @@ class EmailConfig:
         self.password = os.getenv("SMTP_PASSWORD")
         self.skip_sending = os.getenv("SKIP_EMAIL_SENDING", "false").lower() == "true"
         
-        # Check for missing or empty configuration fields
-        missing_fields = []
-        if not self.host or self.host.strip() == "":
-            missing_fields.append("SMTP_HOST")
-        if not self.username or self.username.strip() == "":
-            missing_fields.append("SMTP_USERNAME")
-        if not self.password or self.password.strip() == "":
-            missing_fields.append("SMTP_PASSWORD")
-        
-        if missing_fields:
-            raise ValueError(f"Missing required SMTP configuration: {', '.join(missing_fields)}")
     
     def validate_configuration(self):
         """

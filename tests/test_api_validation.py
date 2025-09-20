@@ -37,7 +37,7 @@ class TestEmailAPIValidation:
         with patch("services.email_service.EmailService.send_email") as mock_send:
             mock_send.return_value = True
             
-            response = self.client.post("/send-email", json=valid_payload)
+            response = self.client.post("/email", json=valid_payload)
             
             assert response.status_code == 200
             assert response.json()["status"] == "success"
@@ -56,7 +56,7 @@ class TestEmailAPIValidation:
         with patch("services.email_service.EmailService.send_email") as mock_send:
             mock_send.return_value = True
             
-            response = self.client.post("/send-email", json=valid_payload)
+            response = self.client.post("/email", json=valid_payload)
             
             assert response.status_code == 200
             assert response.json()["status"] == "success"
@@ -70,7 +70,7 @@ class TestEmailAPIValidation:
             "plain_body": "Test body"
         }
         
-        response = self.client.post("/send-email", json=invalid_payload)
+        response = self.client.post("/email", json=invalid_payload)
         
         assert response.status_code == 422
         assert "At least one recipient is required" in str(response.json())
@@ -84,7 +84,7 @@ class TestEmailAPIValidation:
             "plain_body": "Test body"
         }
         
-        response = self.client.post("/send-email", json=invalid_payload)
+        response = self.client.post("/email", json=invalid_payload)
         
         assert response.status_code == 422
         assert "Subject cannot be empty" in str(response.json())
@@ -98,7 +98,7 @@ class TestEmailAPIValidation:
             "plain_body": "Test body"
         }
         
-        response = self.client.post("/send-email", json=invalid_payload)
+        response = self.client.post("/email", json=invalid_payload)
         
         assert response.status_code == 422
         assert "Subject cannot be empty" in str(response.json())
@@ -112,7 +112,7 @@ class TestEmailAPIValidation:
             "plain_body": ""
         }
         
-        response = self.client.post("/send-email", json=invalid_payload)
+        response = self.client.post("/email", json=invalid_payload)
         
         assert response.status_code == 422
         assert "Plain body cannot be empty" in str(response.json())
@@ -126,7 +126,7 @@ class TestEmailAPIValidation:
             "plain_body": "   "
         }
         
-        response = self.client.post("/send-email", json=invalid_payload)
+        response = self.client.post("/email", json=invalid_payload)
         
         assert response.status_code == 422
         assert "Plain body cannot be empty" in str(response.json())
@@ -140,7 +140,7 @@ class TestEmailAPIValidation:
             "plain_body": "Test body"
         }
         
-        response = self.client.post("/send-email", json=invalid_payload)
+        response = self.client.post("/email", json=invalid_payload)
         
         assert response.status_code == 422
     
@@ -153,7 +153,7 @@ class TestEmailAPIValidation:
             "plain_body": "Test body"
         }
         
-        response = self.client.post("/send-email", json=invalid_payload)
+        response = self.client.post("/email", json=invalid_payload)
         
         assert response.status_code == 422
     
@@ -165,7 +165,7 @@ class TestEmailAPIValidation:
             # Missing from_email and plain_body
         }
         
-        response = self.client.post("/send-email", json=invalid_payload)
+        response = self.client.post("/email", json=invalid_payload)
         
         assert response.status_code == 422
     
@@ -178,7 +178,7 @@ class TestEmailAPIValidation:
             # Missing to field
         }
         
-        response = self.client.post("/send-email", json=invalid_payload)
+        response = self.client.post("/email", json=invalid_payload)
         
         assert response.status_code == 422
     
@@ -191,7 +191,7 @@ class TestEmailAPIValidation:
             # Missing from_email field
         }
         
-        response = self.client.post("/send-email", json=invalid_payload)
+        response = self.client.post("/email", json=invalid_payload)
         
         assert response.status_code == 422
     
@@ -204,7 +204,7 @@ class TestEmailAPIValidation:
             # Missing subject field
         }
         
-        response = self.client.post("/send-email", json=invalid_payload)
+        response = self.client.post("/email", json=invalid_payload)
         
         assert response.status_code == 422
     
@@ -217,7 +217,7 @@ class TestEmailAPIValidation:
             # Missing plain_body field
         }
         
-        response = self.client.post("/send-email", json=invalid_payload)
+        response = self.client.post("/email", json=invalid_payload)
         
         assert response.status_code == 422
     
@@ -230,20 +230,20 @@ class TestEmailAPIValidation:
             "plain_body": ""
         }
         
-        response = self.client.post("/send-email", json=invalid_payload)
+        response = self.client.post("/email", json=invalid_payload)
         
         assert response.status_code == 422
     
     def test_health_endpoint(self):
         """Test health endpoint returns 200"""
-        response = self.client.get("/health")
+        response = self.client.get("/healthz")
         
         assert response.status_code == 200
         assert response.json()["status"] == "healthy"
     
     def test_invalid_json_format(self):
         """Test invalid JSON format returns 422"""
-        response = self.client.post("/send-email", 
+        response = self.client.post("/email", 
                                   content="invalid json",
                                   headers={"Content-Type": "application/json"})
         
@@ -251,7 +251,7 @@ class TestEmailAPIValidation:
     
     def test_wrong_content_type(self):
         """Test wrong content type returns 422"""
-        response = self.client.post("/send-email", 
+        response = self.client.post("/email", 
                                   content="some data",
                                   headers={"Content-Type": "text/plain"})
         
