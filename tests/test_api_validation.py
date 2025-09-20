@@ -244,7 +244,7 @@ class TestEmailAPIValidation:
     def test_invalid_json_format(self):
         """Test invalid JSON format returns 422"""
         response = self.client.post("/send-email", 
-                                  data="invalid json",
+                                  content="invalid json",
                                   headers={"Content-Type": "application/json"})
         
         assert response.status_code == 422
@@ -252,7 +252,7 @@ class TestEmailAPIValidation:
     def test_wrong_content_type(self):
         """Test wrong content type returns 422"""
         response = self.client.post("/send-email", 
-                                  data="some data",
+                                  content="some data",
                                   headers={"Content-Type": "text/plain"})
         
         assert response.status_code == 422
